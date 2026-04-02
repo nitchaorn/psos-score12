@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pSOS Score</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Mitr:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#f3e8ff 0%,#dbeafe 60%,#fce7f3 100%);min-height:100vh;padding-bottom:40px}
+.wrap{max-width:440px;margin:0 auto}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#6d28d9 0%,#a855f7 50%,#ec4899 100%);border-radius:0 0 28px 28px;padding:20px 18px 22px;box-shadow:0 8px 32px rgba(109,40,217,.35);position:relative;overflow:hidden;text-align:center}
+.hdr::before{content:'';position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.1)}
+.hdr-icon{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 3px 10px rgba(0,0,0,.15);margin-bottom:6px}
+.hdr-title{color:#fff;font-family:'Mitr',sans-serif;font-size:22px;font-weight:700}
+.hdr-sub{color:rgba(255,255,255,.8);font-size:11.5px;margin-top:2px}
+.hdr-badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:3px 14px;color:#fff;font-size:11px;font-weight:700;margin-top:6px}
+.nurse-row{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-top:14px}
+.bubble{background:#fff;border-radius:16px 16px 16px 4px;padding:10px 12px;font-size:11px;color:#6d28d9;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.12);max-width:170px;line-height:1.6;margin-bottom:8px}
+.hdr-credit{color:rgba(255,255,255,.6);font-size:10px;margin-top:6px}
+
+/* TABS */
+.tabs{display:flex;background:#fff;margin:12px 12px 0;border-radius:16px;padding:4px;box-shadow:0 4px 16px rgba(109,40,217,.1)}
+.tab-btn{flex:1;border:none;border-radius:12px;padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;background:transparent;color:#9ca3af;transition:all .2s;line-height:1.4}
+.tab-btn.active{background:linear-gradient(120deg,#6d28d9,#ec4899);color:#fff;box-shadow:0 3px 10px rgba(109,40,217,.28)}
+
+/* CONTENT */
+.content{padding:12px 12px 0}
+.panel{display:none}.panel.active{display:block}
+
+/* CARD */
+.card{background:#fff;border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 2px 14px rgba(109,40,217,.08)}
+.card-title{font-family:'Mitr',sans-serif;font-size:13px;font-weight:700;color:#6d28d9;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';width:4px;height:16px;background:linear-gradient(#6d28d9,#ec4899);border-radius:4px;flex-shrink:0}
+
+/* AGE CHIPS */
+.age-chips{display:flex;flex-wrap:wrap;gap:7px}
+.age-chip{border:1.5px solid #e5e7eb;background:#f9fafb;color:#6b7280;border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .18s}
+.age-chip.sel{border-color:#6d28d9;background:linear-gradient(120deg,#ede9fe,#fce7f3);color:#6d28d9;box-shadow:0 2px 8px rgba(109,40,217,.18)}
+
+/* PARAM TABLE */
+.param-card{background:#fff;border-radius:16px;margin-bottom:10px;box-shadow:0 2px 12px rgba(109,40,217,.07);overflow:hidden}
+.param-head{background:linear-gradient(90deg,#f5f3ff,#fdf2f8);padding:9px 14px;font-weight:700;font-size:13px;color:#374151;display:flex;align-items:center;gap:7px}
+.param-head::before{content:'';width:4px;height:15px;background:linear-gradient(#6d28d9,#ec4899);border-radius:4px;flex-shrink:0}
+.tbl-wrap{overflow-x:auto}
+table.score-tbl{width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px}
+table.score-tbl thead th{padding:5px 2px;font-size:11px;font-weight:700;text-align:center;color:#fff}
+table.score-tbl tbody td{padding:8px 2px;font-size:10px;font-weight:600;text-align:center;border:1px solid #f3f4f6;cursor:pointer;transition:all .15s;line-height:1.3;word-break:break-word;vertical-align:middle}
+table.score-tbl tbody td.na{color:#d1d5db;background:#f9fafb;cursor:default}
+table.score-tbl tbody td.sel{color:#fff!important;font-weight:800}
+.sel-indicator{padding:6px 14px;font-size:11.5px;font-weight:700}
+
+/* PROGRESS */
+.prog-bar{height:8px;background:#ede9fe;border-radius:10px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;background:linear-gradient(90deg,#6d28d9,#ec4899);border-radius:10px;transition:width .4s}
+
+/* CALC BTN */
+.calc-btn{width:100%;border:none;border-radius:14px;padding:14px;background:linear-gradient(120deg,#6d28d9,#ec4899);color:#fff;font-family:'Mitr',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(109,40,217,.38);margin-bottom:20px;transition:transform .15s}
+.calc-btn:active{transform:scale(.97)}
+
+/* MASCOTS */
+.mascots{display:flex;justify-content:center;gap:18px;padding-bottom:8px}
+
+/* RESULT */
+.result-score{background:linear-gradient(135deg,#6d28d9,#a855f7,#ec4899);border-radius:22px;padding:24px;text-align:center;margin-bottom:14px;box-shadow:0 8px 30px rgba(109,40,217,.35)}
+.result-score .lbl{color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+.result-score .num{font-family:'Mitr',sans-serif;font-size:80px;font-weight:700;color:#fff;line-height:1;text-shadow:0 4px 16px rgba(0,0,0,.2)}
+.result-score .level{background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;color:#fff;font-size:14px;font-weight:700;margin-top:10px}
+.mgmt-card{border-radius:18px;padding:16px;margin-bottom:14px}
+.mgmt-title{font-weight:800;font-size:14px;margin-bottom:8px}
+.mgmt-text{font-size:13.5px;line-height:1.9;white-space:pre-line}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.score-badge{font-weight:800;font-size:15px;padding:2px 10px;border-radius:8px}
+.reset-btn{width:100%;border:none;border-radius:14px;padding:14px;background:linear-gradient(120deg,#6d28d9,#ec4899);color:#fff;font-family:'Mitr',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(109,40,217,.38);margin-bottom:20px}
+
+/* STD TABLE */
+.std-tbl{border-collapse:collapse;font-size:9px;min-width:380px;width:100%}
+.std-tbl th{padding:5px 3px;text-align:center;color:#fff;font-size:9px}
+.std-tbl th.row-hdr{text-align:left;min-width:82px;font-size:9px}
+.std-tbl td{padding:4px 2px;text-align:center;border-bottom:1px solid #f3f4f6;font-size:9px;line-height:1.3}
+.std-tbl td.row-lbl{font-weight:700;color:#374151;text-align:left;font-size:9px;padding-left:4px}
+
+/* MGMT REF */
+.mgmt-ref{border-radius:12px;padding:10px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;border:1.5px solid}
+.mgmt-ref-sc{color:#fff;border-radius:10px;padding:3px 10px;font-weight:800;font-size:13px;flex-shrink:0}
+.mgmt-ref-txt{font-size:12.5px;line-height:1.65}
+
+/* ABOUT */
+.about-center{text-align:center;padding:22px 0 14px}
+.about-name{font-family:'Mitr',sans-serif;font-weight:700;font-size:17px;color:#6d28d9;margin-top:8px}
+.about-pos{font-size:13px;color:#6b7280;margin-top:2px}
+.about-hosp{font-size:13px;color:#3b82f6;font-weight:700;margin-top:2px}
+.about-badge{display:inline-block;background:linear-gradient(90deg,#6d28d9,#ec4899);color:#fff;border-radius:20px;padding:4px 18px;font-size:12px;font-weight:700;margin-top:10px}
+.warning-box{background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:12px 14px;font-size:12.5px;color:#92400e;line-height:1.7;margin-bottom:16px}
+.footer{text-align:center;color:#9ca3af;font-size:11px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-icon">🏥</div>
+  <div class="hdr-title">pSOS Score 🌸</div>
+  <div class="hdr-sub">โรงพยาบาลแปลงยาว</div>
+  <div class="hdr-badge">👩‍⚕️ ผู้ดูแลเด็ก Pediatric</div>
+  <div class="nurse-row">
+    <!-- Nurse SVG -->
+    <svg width="66" height="99" viewBox="0 0 100 150" fill="none">
+      <rect x="22" y="75" width="56" height="55" rx="16" fill="#bfdbfe"/>
+      <rect x="45" y="82" width="10" height="24" rx="3" fill="#f9a8d4"/>
+      <rect x="39" y="88" width="22" height="10" rx="3" fill="#f9a8d4"/>
+      <circle cx="50" cy="48" r="26" fill="#fde68a"/>
+      <circle cx="37" cy="54" r="6" fill="#fca5a5" opacity=".45"/>
+      <circle cx="63" cy="54" r="6" fill="#fca5a5" opacity=".45"/>
+      <ellipse cx="42" cy="46" rx="4" ry="4.5" fill="#1f2937"/>
+      <ellipse cx="58" cy="46" rx="4" ry="4.5" fill="#1f2937"/>
+      <circle cx="43.5" cy="44.5" r="1.5" fill="#fff"/>
+      <circle cx="59.5" cy="44.5" r="1.5" fill="#fff"/>
+      <path d="M40 57 Q50 66 60 57" stroke="#d97706" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="28" y="22" width="44" height="18" rx="8" fill="#fff"/>
+      <rect x="47" y="26" width="6" height="14" rx="2" fill="#f472b6"/>
+      <rect x="41" y="30" width="18" height="6" rx="2" fill="#f472b6"/>
+      <ellipse cx="26" cy="55" rx="7" ry="18" fill="#d97706"/>
+      <ellipse cx="74" cy="55" rx="7" ry="18" fill="#d97706"/>
+      <rect x="8" y="80" width="16" height="36" rx="8" fill="#bfdbfe"/>
+      <rect x="76" y="80" width="16" height="36" rx="8" fill="#bfdbfe"/>
+      <circle cx="16" cy="118" r="8" fill="#fde68a"/>
+      <circle cx="84" cy="118" r="8" fill="#fde68a"/>
+      <rect x="30" y="126" width="16" height="22" rx="8" fill="#ddd6fe"/>
+      <rect x="54" y="126" width="16" height="22" rx="8" fill="#ddd6fe"/>
+      <ellipse cx="38" cy="148" rx="10" ry="5" fill="#7c3aed"/>
+      <ellipse cx="62" cy="148" rx="10" ry="5" fill="#7c3aed"/>
+    </svg>
+    <div class="bubble" id="bubble">สวัสดีค่ะ! 🌸<br>⚠️ <b>กรุณาระบุอายุก่อนทุกครั้งนะคะ</b><br>แล้วค่อยกรอกค่าได้เลยค่ะ</div>
+  </div>
+  <div class="hdr-credit">พัฒนาโดย นส.นิชนารถ ปานอ่ำ RN ชำนาญการ • รพ.แปลงยาว</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('calc')">🩺<br>ค้นหา</button>
+  <button class="tab-btn" onclick="switchTab('result')">📊<br>ผลลัพธ์</button>
+  <button class="tab-btn" onclick="switchTab('guide')">📖<br>มาตรฐาน</button>
+  <button class="tab-btn" onclick="switchTab('about')">👤<br>เกี่ยวกับ</button>
+</div>
+
+<div class="content">
+
+<!-- ══ CALC ══ -->
+<div class="panel active" id="panel-calc">
+  <!-- Age -->
+  <div class="card">
+    <div class="card-title">🧒 กลุ่มอายุ</div>
+    <div class="age-chips">
+      <button class="age-chip" onclick="selectAge('le2m','≤2 เดือน')">≤2 เดือน</button>
+      <button class="age-chip" onclick="selectAge('2to12m','2–12 เดือน')">2–12 เดือน</button>
+      <button class="age-chip" onclick="selectAge('1to12m','1–12 เดือน')">1–12 เดือน</button>
+      <button class="age-chip" onclick="selectAge('1to2y','>1–2 ปี')">1–2 ปี</button>
+      <button class="age-chip" onclick="selectAge('2to5y','>2–5 ปี')">2–5 ปี</button>
+      <button class="age-chip" onclick="selectAge('5to12y','>5–12 ปี')">5–12 ปี</button>
+      <button class="age-chip" onclick="selectAge('gt12y','>12 ปี')">&gt;12 ปี</button>
+    </div>
+  </div>
+
+  <!-- Params rendered by JS -->
+  <div id="params-area"></div>
+
+  <!-- Progress -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:#6d28d9;font-weight:700">คะแนน pSOS รวม</span>
+      <span style="font-size:12px;color:#9ca3af" id="prog-label">0/7 ตัวแปร</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <button class="calc-btn" onclick="doCalc()">🧮 เลือกค่าแล้วประเมินเดี๋ยวนี้</button>
+
+  <div class="mascots">
+    <!-- Baby -->
+    <svg width="50" height="75" viewBox="0 0 80 120" fill="none">
+      <rect x="22" y="65" width="36" height="38" rx="14" fill="#a5f3fc"/>
+      <circle cx="40" cy="45" r="22" fill="#fde68a"/>
+      <circle cx="29" cy="50" r="5" fill="#fca5a5" opacity=".5"/>
+      <circle cx="51" cy="50" r="5" fill="#fca5a5" opacity=".5"/>
+      <circle cx="33" cy="43" r="3.5" fill="#1f2937"/><circle cx="47" cy="43" r="3.5" fill="#1f2937"/>
+      <circle cx="34" cy="42" r="1" fill="#fff"/><circle cx="48" cy="42" r="1" fill="#fff"/>
+      <path d="M33 53 Q40 60 47 53" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M20 36 Q24 18 40 22 Q56 18 60 36" stroke="#d97706" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="14" cy="80" rx="7" ry="14" fill="#a5f3fc"/>
+      <ellipse cx="66" cy="80" rx="7" ry="14" fill="#a5f3fc"/>
+      <rect x="24" y="100" width="12" height="16" rx="6" fill="#93c5fd"/>
+      <rect x="44" y="100" width="12" height="16" rx="6" fill="#93c5fd"/>
+    </svg>
+    <!-- Toddler -->
+    <svg width="50" height="75" viewBox="0 0 80 120" fill="none">
+      <rect x="20" y="65" width="40" height="40" rx="14" fill="#fde68a"/>
+      <circle cx="40" cy="44" r="22" fill="#fca5a5"/>
+      <circle cx="29" cy="50" r="5" fill="#f472b6" opacity=".4"/>
+      <circle cx="51" cy="50" r="5" fill="#f472b6" opacity=".4"/>
+      <circle cx="33" cy="42" r="3.5" fill="#1f2937"/><circle cx="47" cy="42" r="3.5" fill="#1f2937"/>
+      <circle cx="34" cy="41" r="1" fill="#fff"/><circle cx="48" cy="41" r="1" fill="#fff"/>
+      <path d="M34 53 Q40 59 46 53" stroke="#be185d" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M22 28 Q30 10 40 20 Q50 10 58 28" stroke="#be185d" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="12" cy="79" rx="7" ry="14" fill="#fde68a"/>
+      <ellipse cx="68" cy="79" rx="7" ry="14" fill="#fde68a"/>
+      <rect x="22" y="101" width="14" height="17" rx="7" fill="#a78bfa"/>
+      <rect x="44" y="101" width="14" height="17" rx="7" fill="#a78bfa"/>
+    </svg>
+    <!-- Nurse small -->
+    <svg width="50" height="75" viewBox="0 0 100 150" fill="none">
+      <rect x="22" y="75" width="56" height="55" rx="16" fill="#bfdbfe"/>
+      <rect x="45" y="82" width="10" height="24" rx="3" fill="#f9a8d4"/>
+      <rect x="39" y="88" width="22" height="10" rx="3" fill="#f9a8d4"/>
+      <circle cx="50" cy="48" r="26" fill="#fde68a"/>
+      <ellipse cx="42" cy="46" rx="4" ry="4.5" fill="#1f2937"/>
+      <ellipse cx="58" cy="46" rx="4" ry="4.5" fill="#1f2937"/>
+      <circle cx="43.5" cy="44.5" r="1.5" fill="#fff"/>
+      <circle cx="59.5" cy="44.5" r="1.5" fill="#fff"/>
+      <path d="M40 57 Q50 66 60 57" stroke="#d97706" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="28" y="22" width="44" height="18" rx="8" fill="#fff"/>
+      <rect x="47" y="26" width="6" height="14" rx="2" fill="#f472b6"/>
+      <rect x="41" y="30" width="18" height="6" rx="2" fill="#f472b6"/>
+      <ellipse cx="26" cy="55" rx="7" ry="18" fill="#d97706"/>
+      <ellipse cx="74" cy="55" rx="7" ry="18" fill="#d97706"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="panel" id="panel-result">
+  <div id="result-area">
+    <div class="card" style="text-align:center;padding:40px 16px">
+      <div style="font-size:48px;margin-bottom:12px">🩺</div>
+      <div style="font-size:14px;color:#9ca3af">กรุณากรอกข้อมูลที่แท็บ "ค้นหา"<br>แล้วกดประเมินค่ะ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GUIDE ══ -->
+<div class="panel" id="panel-guide">
+  <div class="card">
+    <div class="card-title">📊 ตารางมาตรฐาน pSOS Score</div>
+    <!-- color legend -->
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;align-items:center">
+      <span style="font-size:10px;color:#6b7280;margin-right:4px">คะแนน:</span>
+      <span style="background:#ef4444;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">3</span>
+      <span style="background:#f97316;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">2</span>
+      <span style="background:#eab308;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">1</span>
+      <span style="background:#22c55e;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">0</span>
+      <span style="background:#eab308;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">1</span>
+      <span style="background:#f97316;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">2</span>
+      <span style="background:#ef4444;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700">3</span>
+      <span style="font-size:10px;color:#9ca3af;margin-left:4px">← ผิดปกติ | ปกติ | ผิดปกติ →</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="std-tbl" id="std-table"></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 เกณฑ์การจัดการ</div>
+    <div class="mgmt-ref" style="background:#dcfce7;border-color:#86efac">
+      <div class="mgmt-ref-sc" style="background:#16a34a">1–2</div>
+      <div class="mgmt-ref-txt">Record V/S q 4 hr</div>
+    </div>
+    <div class="mgmt-ref" style="background:#fef9c3;border-color:#fde047">
+      <div class="mgmt-ref-sc" style="background:#ca8a04">3</div>
+      <div class="mgmt-ref-txt">Record V/S q 2–4 hr + รายงานแพทย์รับทราบ</div>
+    </div>
+    <div class="mgmt-ref" style="background:#ffedd5;border-color:#fb923c">
+      <div class="mgmt-ref-sc" style="background:#ea580c">4</div>
+      <div class="mgmt-ref-txt">Record V/S q 1 hr + ตามแพทย์ทุกราย</div>
+    </div>
+    <div class="mgmt-ref" style="background:#fee2e2;border-color:#f87171">
+      <div class="mgmt-ref-sc" style="background:#dc2626">≥5</div>
+      <div class="mgmt-ref-txt">Record V/S q 15 min + ตามแพทย์ทุกราย + รายงานกุมารแพทย์</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ABOUT ══ -->
+<div class="panel" id="panel-about">
+  <div class="about-center">
+    <div style="font-size:56px">👩‍⚕️</div>
+    <div class="about-name">นส.นิชนารถ ปานอ่ำ</div>
+    <div class="about-pos">พยาบาลวิชาชีพชำนาญการ</div>
+    <div class="about-hosp">🏥 โรงพยาบาลแปลงยาว</div>
+    <div class="about-badge">ผู้พัฒนาระบบ</div>
+  </div>
+  <div class="card">
+    <b style="color:#6d28d9">pSOS Score (Pediatric Search Out Severity Score)</b><br><br>
+    พัฒนาเพื่อช่วยพยาบาลคัดกรองและประเมินความรุนแรงของผู้ป่วยเด็กอย่างรวดเร็ว ครอบคลุมทุกกลุ่มอายุตั้งแต่ ≤2 เดือน ถึงมากกว่า 12 ปี
+  </div>
+  <div class="warning-box">⚠️ <b>คำเตือน:</b> ระบบนี้เป็นเครื่องมือช่วยประเมินเบื้องต้น การตัดสินใจทางคลินิกต้องอยู่ภายใต้บุคลากรทางการแพทย์ที่มีใบอนุญาต</div>
+  <div class="footer">© 2567 นส.นิชนารถ ปานอ่ำ • รพ.แปลงยาว<br>พัฒนาด้วย ❤️ เพื่อการดูแลผู้ป่วยเด็ก</div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /wrap -->
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const SC = [-3,-2,-1,0,1,2,3];
+// หัวตาราง: แสดงระยะห่างจากปกติ (บวกเสมอ)
+const SCLABEL = ['3','2','1','0','1','2','3'];
+// scoreMap: แปลงตำแหน่งเป็นคะแนนจริง (ใช้คำนวณ)
+const scoreMap = {'-3':3,'-2':2,'-1':1,'0':0,'1':1,'2':2,'3':3};
+// สีสมมาตร: 0=เขียว, ±1=เหลือง, ±2=ส้ม, ±3=แดง
+const BG = {'-3':'#ef4444','-2':'#f97316','-1':'#eab308','0':'#22c55e','1':'#eab308','2':'#f97316','3':'#ef4444'};
+const LT = {'-3':'#fee2e2','-2':'#ffedd5','-1':'#fef9c3','0':'#dcfce7','1':'#fef9c3','2':'#ffedd5','3':'#fee2e2'};
+const bg = s=>BG[String(s)]; const lt = s=>LT[String(s)];
+
+// rows = 7 ช่อง ตรงกับ SC [-3,-2,-1,0,1,2,3]
+// null = ไม่มีค่าในช่องนั้น
+const PARAMS = [
+  { key:'bt', label:'Body Temperature (BT) °C', icon:'🌡️',
+    rows:{ default:[null,'≤35','35.1-36.5','36.6-38','38.1-38.4','≥38.5',null] }},
+  { key:'hr', label:'Heart Rate ครั้ง/นาที', icon:'❤️',
+    rows:{
+      le2m:    [null,'≤100',null,'101-160','161-180','181-200','>200'],
+      '2to12m':[null,'≤100',null,'101-160','161-180','181-200','>200'],
+      '1to12m':[null,'≤100',null,'101-160','161-180','181-200','>200'],
+      '1to2y': [null,'≤60', null,'61-120', '121-140','>140',   null ],
+      '2to5y': [null,'≤60', null,'61-120', '121-140','>140',   null ],
+      '5to12y':[null,'≤60', null,'61-110', '111-130','>130',   null ],
+      gt12y:   [null,'≤40','41-50','51-100','101-120','121-139','≥140'],
+    }},
+  { key:'rr', label:'Respiratory Rate ครั้ง/นาที', icon:'💨',
+    rows:{
+      le2m:    [null,null,'ETT','30-60','61-80','>80',null],
+      '2to12m':[null,null,'ETT','25-50','51-70','>70',null],
+      '1to12m':[null,null,'ETT','25-50','51-70','>70',null],
+      '1to2y': [null,null,'ETT','20-40','41-60','>60',null],
+      '2to5y': [null,null,'ETT','20-40','41-60','>60',null],
+      '5to12y':[null,null,'ETT','20-30','31-40','>40',null],
+      gt12y:   [null,'≤8','ETT','12-15','16-24','>24',null],
+    }},
+  { key:'map', label:'MAP (mmHg)', icon:'🩸',
+    rows:{
+      le2m:    ['Inotrope',null,null,'ปกติ(≥60)',null,'<60',null],
+      '2to12m':['Inotrope',null,null,'ปกติ(≥60)',null,'<60',null],
+      '1to12m':['Inotrope',null,null,'ปกติ(≥60)',null,'<60',null],
+      '1to2y': ['Inotrope',null,null,'ปกติ(≥60)',null,'<60',null],
+      '2to5y': ['Inotrope',null,null,'ปกติ(>65)',null,'≤65',null],
+      '5to12y':['Inotrope',null,null,'ปกติ(>65)',null,'≤65',null],
+      gt12y:   ['Inotrope',null,null,'ปกติ(>65)',null,'≤65',null],
+    }},
+  { key:'conscious', label:'Consciousness', icon:'🧠',
+    rows:{ default:[null,null,'Agitation','Awake/Alert','Drowsy','Stupor','Unconscious'] }},
+  { key:'io', label:'Intake–Output', icon:'💧',
+    rows:{ default:[null,null,null,'Balance','>10 ml/kg/d','>20 ml/kg/d',null] }},
+  { key:'spo2', label:'SpO2 (%)', icon:'🫁',
+    rows:{ default:['<85%','85-90%','91-95%','>95%',null,null,null] }},
+];
+
+const MGMT = [
+  {max:2,  bg:'#dcfce7',border:'#86efac',tc:'#16a34a',emoji:'🟢',label:'ระดับน้อย (1–2)',   text:'Record V/S q 4 hr'},
+  {max:3,  bg:'#fef9c3',border:'#fde047',tc:'#ca8a04',emoji:'🟡',label:'ระดับปานกลาง (3)', text:'Record V/S q 2–4 hr\nรายงานแพทย์รับทราบ'},
+  {max:4,  bg:'#ffedd5',border:'#fb923c',tc:'#ea580c',emoji:'🟠',label:'ระดับสูง (4)',      text:'Record V/S q 1 hr\nตามแพทย์ทุกราย'},
+  {max:999,bg:'#fee2e2',border:'#f87171',tc:'#dc2626',emoji:'🔴',label:'ระดับวิกฤต (≥5)',   text:'Record V/S q 15 min\nตามแพทย์ทุกราย\nรายงานกุมารแพทย์ทันที'},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let selAge = null;
+let scores = {};
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['calc','result','guide','about'][i]===t);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+}
+
+// ── SELECT AGE ────────────────────────────────────────────────────────────
+function selectAge(key, label) {
+  selAge = key; scores = {};
+  document.querySelectorAll('.age-chip').forEach(b=>b.classList.remove('sel'));
+  event.target.classList.add('sel');
+  document.getElementById('bubble').innerHTML =
+    `✅ เลือกอายุ "<b>${label}</b>" แล้วค่ะ<br>กรอกค่าในตารางด้านล่างได้เลยค่ะ 🌸`;
+  renderParams();
+  updateProgress();
+}
+
+// ── RENDER PARAMS ─────────────────────────────────────────────────────────
+function renderParams() {
+  const area = document.getElementById('params-area');
+  area.innerHTML = '';
+  PARAMS.forEach(p => {
+    const row = p.rows[selAge] || p.rows['default'] || [];
+    const hasData = selAge || p.rows['default'];
+    const div = document.createElement('div');
+    div.className = 'param-card';
+
+    let inner = `<div class="param-head">${p.icon} ${p.label}</div>`;
+    if (hasData) {
+      inner += `<div class="tbl-wrap"><table class="score-tbl"><thead><tr>`;
+      SC.forEach((s,i) => {
+        inner += `<th style="background:${bg(s)};width:14.28%">${SCLABEL[i]}</th>`;
+      });
+      inner += `</tr></thead><tbody><tr>`;
+      SC.forEach((s, i) => {
+        const cell = row[i];
+        const isSel = scores[p.key]===s && cell;
+        const cls = !cell ? 'na' : isSel ? 'sel' : '';
+        const bgStyle = isSel ? `background:${bg(s)}` : cell ? `background:${lt(s)}` : 'background:#f9fafb';
+        const colorStyle = isSel ? 'color:#fff' : cell ? 'color:#1f2937' : 'color:#d1d5db';
+        const click = cell && selAge ? `onclick="pickScore('${p.key}',${s})"` : '';
+        inner += `<td class="${cls}" style="${bgStyle};${colorStyle}" ${click}>${cell||'—'}</td>`;
+      });
+      inner += `</tr></tbody></table></div>`;
+      if (scores[p.key] !== undefined) {
+        const s = scores[p.key];
+        const pts = scoreMap[String(s)];
+        inner += `<div class="sel-indicator" style="background:${lt(s)};color:${bg(s)}">✓ เลือกแล้ว — คะแนน: +${pts}</div>`;
+      }
+    } else {
+      inner += `<div style="padding:10px 14px;color:#9ca3af;font-size:12px">กรุณาเลือกกลุ่มอายุก่อนค่ะ 🌸</div>`;
+    }
+    div.innerHTML = inner;
+    area.appendChild(div);
+  });
+}
+
+// ── PICK SCORE ────────────────────────────────────────────────────────────
+function pickScore(key, val) {
+  if (scores[key] === val) delete scores[key];
+  else scores[key] = val;
+  renderParams();
+  updateProgress();
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────────────
+function updateProgress() {
+  const filled = Object.keys(scores).length;
+  document.getElementById('prog-label').textContent = `${filled}/7 ตัวแปร`;
+  document.getElementById('prog-fill').style.width = `${(filled/7)*100}%`;
+}
+
+// ── CALC ──────────────────────────────────────────────────────────────────
+function doCalc() {
+  if (!selAge) { alert('กรุณาเลือกกลุ่มอายุก่อนนะคะ 🌸'); return; }
+  const vals = Object.values(scores);
+  if (vals.length < 3) { alert('กรุณาเลือกค่าอย่างน้อย 3 รายการค่ะ 💕'); return; }
+  // แปลงตำแหน่งช่องเป็นคะแนนจริง (ระยะห่างจาก 0 = บวกเสมอ)
+  const total = vals.reduce((a,s)=>a+scoreMap[String(s)],0);
+  showResult(total, scores);
+  switchTab('result');
+}
+
+// ── SHOW RESULT ───────────────────────────────────────────────────────────
+function showResult(total, sc) {
+  const m = MGMT.find(x=>total<=x.max)||MGMT[3];
+  let html = `
+    <div class="result-score">
+      <div class="lbl">คะแนน pSOS รวม</div>
+      <div class="num">${total}</div>
+      <div class="level">${m.emoji} ${m.label}</div>
+    </div>
+    <div class="mgmt-card" style="background:${m.bg};border:2px solid ${m.border}">
+      <div class="mgmt-title" style="color:${m.tc}">📋 การจัดการ</div>
+      <div class="mgmt-text">${m.text}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 รายละเอียดคะแนน</div>`;
+  PARAMS.forEach(p=>{
+    if (sc[p.key]!==undefined) {
+      const s = sc[p.key];
+      const pts = scoreMap[String(s)];
+      const row = p.rows[selAge]||p.rows['default']||[];
+      const idx = SC.indexOf(s);
+      const cellLabel = row[idx]||'';
+      html+=`<div class="detail-row">
+        <span style="font-size:12px;color:#6b7280">${p.icon} ${p.label}</span>
+        <span style="font-size:11px;color:#374151;margin:0 8px">${cellLabel}</span>
+        <span class="score-badge" style="background:${lt(s)};color:${bg(s)}">+${pts}</span>
+      </div>`;
+    }
+  });
+  html+=`</div>
+    <button class="reset-btn" onclick="doReset()">🔄 ประเมินผู้ป่วยรายใหม่</button>
+    <div class="mascots">
+      <svg width="50" height="75" viewBox="0 0 80 120" fill="none"><rect x="22" y="65" width="36" height="38" rx="14" fill="#a5f3fc"/><circle cx="40" cy="45" r="22" fill="#fde68a"/><circle cx="29" cy="50" r="5" fill="#fca5a5" opacity=".5"/><circle cx="51" cy="50" r="5" fill="#fca5a5" opacity=".5"/><circle cx="33" cy="43" r="3.5" fill="#1f2937"/><circle cx="47" cy="43" r="3.5" fill="#1f2937"/><circle cx="34" cy="42" r="1" fill="#fff"/><circle cx="48" cy="42" r="1" fill="#fff"/><path d="M33 53 Q40 60 47 53" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg width="50" height="75" viewBox="0 0 80 120" fill="none"><rect x="20" y="65" width="40" height="40" rx="14" fill="#fde68a"/><circle cx="40" cy="44" r="22" fill="#fca5a5"/><circle cx="29" cy="50" r="5" fill="#f472b6" opacity=".4"/><circle cx="51" cy="50" r="5" fill="#f472b6" opacity=".4"/><circle cx="33" cy="42" r="3.5" fill="#1f2937"/><circle cx="47" cy="42" r="3.5" fill="#1f2937"/><circle cx="34" cy="41" r="1" fill="#fff"/><circle cx="48" cy="41" r="1" fill="#fff"/><path d="M34 53 Q40 59 46 53" stroke="#be185d" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg width="50" height="75" viewBox="0 0 100 150" fill="none"><rect x="22" y="75" width="56" height="55" rx="16" fill="#bfdbfe"/><rect x="45" y="82" width="10" height="24" rx="3" fill="#f9a8d4"/><circle cx="50" cy="48" r="26" fill="#fde68a"/><ellipse cx="42" cy="46" rx="4" ry="4.5" fill="#1f2937"/><ellipse cx="58" cy="46" rx="4" ry="4.5" fill="#1f2937"/><circle cx="43.5" cy="44.5" r="1.5" fill="#fff"/><circle cx="59.5" cy="44.5" r="1.5" fill="#fff"/><path d="M40 57 Q50 66 60 57" stroke="#d97706" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="28" y="22" width="44" height="18" rx="8" fill="#fff"/><rect x="47" y="26" width="6" height="14" rx="2" fill="#f472b6"/><rect x="41" y="30" width="18" height="6" rx="2" fill="#f472b6"/></svg>
+    </div>`;
+  document.getElementById('result-area').innerHTML = html;
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────
+function doReset() {
+  selAge=null; scores={};
+  document.querySelectorAll('.age-chip').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('bubble').innerHTML='สวัสดีค่ะ! 🌸<br>⚠️ <b>กรุณาระบุอายุก่อนทุกครั้งนะคะ</b><br>แล้วค่อยกรอกค่าได้เลยค่ะ';
+  document.getElementById('params-area').innerHTML='';
+  document.getElementById('result-area').innerHTML=`<div class="card" style="text-align:center;padding:40px 16px"><div style="font-size:48px;margin-bottom:12px">🩺</div><div style="font-size:14px;color:#9ca3af">กรุณากรอกข้อมูลที่แท็บ "ค้นหา"<br>แล้วกดประเมินค่ะ</div></div>`;
+  updateProgress();
+  switchTab('calc');
+}
+
+// ── STD TABLE ─────────────────────────────────────────────────────────────
+function buildStdTable() {
+  // 7 ช่อง ตรงตาม PDF ต้นฉบับ [-3,-2,-1,0,+1,+2,+3]
+  const rows = [
+    ['🌡️ BT (°C)',    [null,'≤35','35.1-36.5','36.6-38','38.1-38.4','≥38.5',null]],
+    ['❤️ HR 1-12m',  [null,'≤100',null,'101-160','161-180','181-200','>200']],
+    ['❤️ HR >1-5y',  [null,'≤60', null,'61-120', '121-140','>140',   null ]],
+    ['❤️ HR >5-12y', [null,'≤60', null,'61-110', '111-130','>130',   null ]],
+    ['❤️ HR >12y',   [null,'≤40','41-50','51-100','101-120','121-139','≥140']],
+    ['💨 RR ≤2เดือน',[null,null,'ETT','30-60','61-80','>80',null]],
+    ['💨 RR 2-12เดือน',[null,null,'ETT','25-50','51-70','>70',null]],
+    ['💨 RR >1-5ปี', [null,null,'ETT','20-40','41-60','>60',null]],
+    ['💨 RR >5-12ปี',[null,null,'ETT','20-30','31-40','>40',null]],
+    ['💨 RR >12ปี',  [null,'≤8','ETT','12-15','16-24','>24',null]],
+    ['🩸 MAP <2ปี',  ['Inotrope',null,null,'ปกติ(≥60)',null,'<60',null]],
+    ['🩸 MAP ≥2ปี',  ['Inotrope',null,null,'ปกติ(>65)',null,'≤65',null]],
+    ['🧠 Conscious', [null,null,'Agitation','Awake/Alert','Drowsy','Stupor','Unconscious']],
+    ['💧 I/O',       [null,null,null,'Balance','>10 ml/kg','>20 ml/kg',null]],
+    ['🫁 SpO₂(%)',   ['<85','85-90','91-95','>95',null,null,null]],
+  ];
+  const t = document.getElementById('std-table');
+  let h = `<thead><tr><th class="lh" style="background:#6d28d9;color:#fff;padding:6px 5px;text-align:left;min-width:90px">ตัวแปร</th>`;
+  SC.forEach((s,i)=>{ h+=`<th style="background:${bg(s)};padding:5px 2px;width:13%">${SCLABEL[i]}</th>`; });
+  h+=`</tr></thead><tbody>`;
+  rows.forEach(([lbl,row])=>{
+    h+=`<tr><td style="padding:4px 5px;font-weight:700;color:#374151;border-bottom:0.5px solid #f3f4f6;font-size:9px">${lbl}</td>`;
+    row.forEach((v,i)=>{
+      const bgs = v?`background:${lt(SC[i])}`:'background:#f9fafb';
+      const col = v?'color:#374151':'color:#d1d5db';
+      h+=`<td style="${bgs};${col};padding:4px 2px;text-align:center;border-bottom:0.5px solid #f3f4f6;font-size:9px">${v||'—'}</td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody>`;
+  t.innerHTML=h;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+buildStdTable();
+</script>
+</body>
+</html>
